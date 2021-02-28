@@ -1,0 +1,79 @@
+Blog APIs
+
+1. postArticle -
+	{
+		"author" : "",
+		"title" : "",
+		"categories" : [],
+		"article" : "",
+		"status" : ""
+	}
+1. getAllArticles - done
+1. getAllArticlesOfAUser - done
+1. getArticleByStatus - done
+1. getAnArticleOfAUser - done
+1. getArticleByCategory || getRelatedPost/ -> gets 5 post related to the selected category - done
+
+update requires, fetching the current state of the post object, adjust the required part and push back the json as update
+1. UpdateAnArticle -UPDATE - done
+	{
+		.
+		.
+		.
+		all existing objects of post
+		"article": ""
+	}
+1. setArticleStatus. -> -UPDATE - done
+	{
+		.
+		.
+		.
+		all existing objects of post
+		"status": "" //<post, draft, delete>
+	}
+1. setPostComment -UPDATE
+	{
+		.
+		.
+		.
+		all existing objects of post
+		"comments": [{
+			"parentID" : "", //this should be the postID
+			"author" : "",
+			"text" : "",
+			"datecreated" :"" // YYYY-MM-DD
+			"likes" : 0
+			"replies" : []
+		}]
+	}
+1. setCommentReplies -UPDATE
+	{
+		.
+		.
+		.
+		all existing objects of post
+		"comments": [{
+			"parentid" : "", //this should be the postID
+			"commentid" : "", //generated comment id
+			"author" : "",
+			"text" : "",
+			"datecreated" :"" // YYYY-MM-DD
+			"likes" : 0
+			"replies" : [{
+				"parentid" : "", //this should be the postID
+				"commentid" : "", //generated comment id
+				"author" : "",
+				"text" : "",
+				"datecreated" :"" // YYYY-MM-DD
+				"likes" : 0
+				"replies" : []
+			}]
+		}]
+	}
+
+You can not fetch comments alone. You fetch posts 
+1. fetchCommentsById -> get top level comments
+1. fetchSubCommentsById -> fetch comments on a particular comment
+
+
+1. getArticle/?search='xyz' -> retrieves articles that matches search parameters {elastic search would be used}
