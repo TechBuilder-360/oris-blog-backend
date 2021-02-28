@@ -22,7 +22,7 @@ Run `docker run --name mongo-db -p 27017:27017 -d mongo:latest`
 
 DATABASE_NAME=<specify_database_name>
 
-CUSTOMER_COLLECTION=<specify_collection_name>
+BLOG_COLLECTION=<specify_collection_name>
 
 PORT=8000
 
