@@ -10,8 +10,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-//GetMongoDbConnection get connection of mongodb
-func GetMongoDbConnection() (*mongo.Client, error) {
+//GetMongoDbCollection get collection from mongodb
+func GetMongoDbCollection(DbName string, CollectionName string) (*mongo.Collection) {
 
 	// URI := os.Getenv("DATABASE_ADDRESS")
 	URI := "mongodb://localhost:27017"
@@ -26,18 +26,7 @@ func GetMongoDbConnection() (*mongo.Client, error) {
 		log.Fatal(err)
 	}
 
-	return client, nil
-}
-
-//GetMongoDbCollection gets a collection from mongodb
-func GetMongoDbCollection(DbName string, CollectionName string) (*mongo.Collection, error) {
-	client, err := GetMongoDbConnection()
-
-	if err != nil {
-		return nil, err
-	}
-
 	collection := client.Database(DbName).Collection(CollectionName)
-
-	return collection, nil
+	
+	return collection
 }

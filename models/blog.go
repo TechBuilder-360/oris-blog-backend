@@ -13,9 +13,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
-
-// statusPost := map[string]string{"draft": "DRAFT", "published": "PUBLISHED"}
 
 // Post struct
 type Post struct {
@@ -34,19 +33,18 @@ type Post struct {
 	Status string `json:"status,omitempty"`
 }
 
+func getCollectionObject()(*mongo.Collection){
+	collection := database.GetMongoDbCollection(os.Getenv("DATABASE_NAME"), os.Getenv("BLOG_COLLECTION"))
+	return collection
+}
 
-//GetPost returns a single post or all posts as the case may be. Requires being tied to a particular user
+//GetPost returns a single post or all posts as the case may be.
 func GetPost(c *gin.Context) {
-	collection, err := database.GetMongoDbCollection(os.Getenv("DATABASE_NAME"), os.Getenv("BLOG_COLLECTION"))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
-		return
-	}
-
+	
 	var filter bson.M = bson.M{}
 
 	// get by postId
-	if c.Query("postId") != "" && c.Query("author") == ""{
+	if c.Query("postId") != "" && c.Query("author") == "" {
 		id := c.Query("postId")
 		objID, _ := primitive.ObjectIDFromHex(id)
 		filter = bson.M{"_id": objID}
@@ -80,10 +78,11 @@ func GetPost(c *gin.Context) {
 	}
 
 	var results []bson.M
-	cur, err := collection.Find(context.Background(), filter)
+	cur, err := getCollectionObject().Find(context.Background(), filter)
 	defer cur.Close(context.Background())
 
 	if err != nil {
+		fmt.Println(err)
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
@@ -100,15 +99,10 @@ func GetPost(c *gin.Context) {
 
 // CreatePost record into collection
 func CreatePost(c *gin.Context) {
-	collection, err := database.GetMongoDbCollection(os.Getenv("DATABASE_NAME"), os.Getenv("BLOG_COLLECTION"))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
-		return
-	}
 
 	var post Post 
 
-	err = c.ShouldBind(&post)
+	err := c.ShouldBind(&post)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)
@@ -125,7 +119,7 @@ func CreatePost(c *gin.Context) {
 	post.DateCreated = time.Now()
 	post.Likes = 0
 
-	response, err := collection.InsertOne(context.Background(), post)
+	response, err := getCollectionObject().InsertOne(context.Background(), post)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)
 		return
@@ -136,13 +130,7 @@ func CreatePost(c *gin.Context) {
 
 //UpdatePost record in collection
 func UpdatePost(c *gin.Context) {
-	collection, err := database.GetMongoDbCollection(os.Getenv("DATABASE_NAME"), os.Getenv("BLOG_COLLECTION"))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
-		return
-	}
 	var post Post
-	// json.Unmarshal([]byte(c.Request.Body), &post)
 	c.ShouldBind(&post)
 
 	post.DateUpdated = time.Now()
@@ -152,7 +140,7 @@ func UpdatePost(c *gin.Context) {
 	}
 
 	objID, _ := primitive.ObjectIDFromHex(c.Param("id"))
-	response, err := collection.UpdateOne(context.Background(), bson.M{"_id": objID}, update)
+	response, err := getCollectionObject().UpdateOne(context.Background(), bson.M{"_id": objID}, update)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)
@@ -196,15 +184,8 @@ func isAlphabet(i int) bool {
 
 // DeletePost record from collection
 func DeletePost(c *gin.Context) {
-	collection, err := database.GetMongoDbCollection(os.Getenv("DATABASE_NAME"), os.Getenv("BLOG_COLLECTION"))
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
-		return
-	}
-
 	objID, _ := primitive.ObjectIDFromHex(c.Param("id"))
-	response, err := collection.DeleteOne(context.Background(), bson.M{"_id": objID})
+	response, err := getCollectionObject().DeleteOne(context.Background(), bson.M{"_id": objID})
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)

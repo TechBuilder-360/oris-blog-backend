@@ -12,7 +12,8 @@ import (
 var port string = os.Getenv("PORT")
 
 func main() {
-
+	// gin.SetMode(gin.ReleaseMode)
+	
 	app := gin.Default()
 
 	//queryparams postId,author,category, status
