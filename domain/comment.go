@@ -1,14 +1,14 @@
-package models
+package domain
 
 // Comment struct
 type Comment struct {
-	ParentID string `json:"parentid,omitempty"`
+	PostID string `json:"postid,omitempty"`
 	CommentID string `json:"commentid,omitempty"`
 	Author string `json:"author,omitempty"`
 	Text string `json:"text,omitempty"`
 	DateCreated string `json:"datecreated,omitempty"`
 	Replies []Comment `json:"replies,omitempty"`
 	RepliesCount int
-	Likes int `json:"likes,omitempty"` //userID array
+	Likes [] string `json:"likes,omitempty"` //userID array
 	LikeCount int
 }

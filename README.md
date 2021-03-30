@@ -24,7 +24,7 @@ DATABASE_NAME=<specify_database_name>
 
 BLOG_COLLECTION=<specify_collection_name>
 
-PORT=8000
+PORT=:<specify_port> ':' is compulsory e.g :8000
 
 ### Run project
 

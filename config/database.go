@@ -1,20 +1,20 @@
-package database
+package config
 
 import (
 	"context"
 	"log"
-	// "os"
+	"os"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-//GetMongoDbCollection get collection from mongodb
-func GetMongoDbCollection(DbName string, CollectionName string) (*mongo.Collection) {
+//GetEntityDbCollection get collection from database
+func GetEntityDbCollection(DbName string, CollectionName string) (*mongo.Collection) {
 
-	// URI := os.Getenv("DATABASE_ADDRESS")
-	URI := "mongodb://localhost:27017"
+	URI := os.Getenv("DATABASE_ADDRESS")
+	// URI := "mongodb://localhost:27017"
 	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(URI))
 
 	if err != nil {
