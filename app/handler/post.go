@@ -12,8 +12,8 @@ type PostHandler struct {
 	PostEntity domain.PostEntity
 }
 
-// NewBooksHandler ...
-func NewBooksHandler(r *gin.RouterGroup, pe domain.PostEntity) {
+// NewPostHandler ...
+func NewPostHandler(r *gin.RouterGroup, pe domain.PostEntity) {
 	handler := &PostHandler{
 		PostEntity: pe,
 	}
@@ -21,7 +21,7 @@ func NewBooksHandler(r *gin.RouterGroup, pe domain.PostEntity) {
 	//queryparams postid, authorid, category, status (no params returns all posts)
 	r.GET("/post", handler.FindPost)
 
-	r.POST("/post", handler.MakePost)
+	r.POST("/post", handler.CreatePost)
 
 	r.PUT("/post/:postid", handler.UpdatePost)
 
@@ -36,8 +36,8 @@ func (a *PostHandler) FindPost(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": post})
 }
 
-// MakePost ...
-func (a *PostHandler) MakePost(c *gin.Context) {
+// CreatePost ...
+func (a *PostHandler) CreatePost(c *gin.Context) {
 	var reqPost domain.Post 
 
 	err := c.ShouldBind(&reqPost)

@@ -1,7 +1,6 @@
 package main
 
 import (
-	// "blog/models"
 	"blog/config"
 	"os"
 
@@ -28,22 +27,19 @@ func main() {
 	// app.Use(cors.Default())
 
 	postCollection := config.GetEntityDbCollection(os.Getenv("DATABASE_NAME"), os.Getenv("BLOG_COLLECTION"))
+	commentCollection := config.GetEntityDbCollection(os.Getenv("DATABASE_NAME"), os.Getenv("COMMENT_COLLECTION"))
 
 	repoPost := _repo.NewPostRepository(postCollection)
-	entityPost := _entity.NewPostEntity(repoPost)	
+	entityPost := _entity.NewPostEntity(repoPost)
+	
+	repoComment := _repo.NewCommentRepository(commentCollection)
+	entityComment := _entity.NewCommentEntity(repoComment)
 
-	//queryparams postId,author,category, status
-	// app.GET("/api/blog/post", models.GetPost)
-
-	// app.POST("/api/blog/post", models.CreatePost)
-
-	// app.PUT("/api/blog/post/:id", models.UpdatePost)
-
-	// app.DELETE("/api/blog/post/:id", models.DeletePost)
 
 	api := app.Group("/api/v1/blog")
 
-	_handler.NewBooksHandler(api, entityPost)
+	_handler.NewPostHandler(api, entityPost)
+	_handler.NewCommentHandler(api, entityComment, repoPost)
 
 	//Port
 	app.Run(port)
