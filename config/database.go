@@ -3,7 +3,6 @@ package config
 import (
 	"context"
 	"log"
-	"os"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -11,11 +10,9 @@ import (
 )
 
 //GetEntityDbCollection get collection from database
-func GetEntityDbCollection(DbName string, CollectionName string) (*mongo.Collection) {
+func GetEntityDbCollection(DbName string, DbAddress string, CollectionName string) (*mongo.Collection) {
 
-	URI := os.Getenv("DATABASE_ADDRESS")
-	// URI := "mongodb://localhost:27017"
-	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(URI))
+	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(DbAddress))
 
 	if err != nil {
 		log.Fatal(err)

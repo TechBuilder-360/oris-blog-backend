@@ -16,9 +16,9 @@ type Comment struct {
 	Author string `json:"authorid,omitempty"` // comment author id/name
 	Text string `json:"text,omitempty"`
 	DateCreated time.Time
-	Replies [] string `json:"replies,omitempty"` //userID array
+	Replies [] string //userID array
 	RepliesCount int
-	Likes [] string `json:"likes,omitempty"` //userID array
+	Likes [] string  //userID array
 	LikeCount int
 }
 

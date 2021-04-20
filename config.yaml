@@ -1,0 +1,6 @@
+BLOG_COLLECTION: "blogs"
+COMMENT_COLLECTION: "post_comments"
+FOLLOW_COLLECTION: "follows"
+DATABASE_NAME: "blogdb"
+DATABASE_ADDRESS: "mongodb://localhost:27017"
+PORT: ":8000"
