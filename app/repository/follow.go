@@ -44,33 +44,53 @@ func (c *FollowRepository) FetchFollows(ctx context.Context, ginContext *gin.Con
 	return follow, nil
 }
 
-func (c *FollowRepository) CreateFollow(ctx context.Context, follower domain.Follow) (resFollow *mongo.InsertManyResult, err error) {
-	// create struct for followed
-	var followed domain.Follow
-	followed.UserID = follower.Following[0]
-	followed.Followers = []string{follower.UserID}
+func (c *FollowRepository) CreateFollow(ctx context.Context, follower domain.Follow, mode string) (status string, err error) {
+	
+	if mode == "one"{
+		_, err := c.Collection.InsertOne(context.Background(), follower)
 
-	documents := []interface{}{follower, followed}
-	response, err := c.Collection.InsertMany(context.Background(), documents)
-
-	if err != nil {
-		return response, err
+		if err != nil {
+			return "FAILED", err
+		} 
 	}
 
-	return response, nil
+	if mode == "many"{
+		// create struct for followed
+		var followed domain.Follow
+		followed.UserID = follower.Following[0]
+		followed.Followers = []string{follower.UserID}
+
+		documents := []interface{}{follower, followed}
+		_, err := c.Collection.InsertMany(context.Background(), documents)
+
+		if err != nil {
+			return "FAILED", err
+		}
+	}
+	
+	return "SUCCESS", nil
 }
 
-func (c *FollowRepository) UpdateFollowers(ctx context.Context, userId string, followerId string) (resFollow *mongo.UpdateResult, err error) {
+func (c *FollowRepository) UpdateFollowers(ctx context.Context, userId string, followerId string, mode string) (resFollow *mongo.UpdateResult, err error) {
 	//find follower struct in db
 	var userIdDoc domain.Follow
 	var filter bson.M = bson.M{}
 	filter = bson.M{"userid": userId}
-	cur, _ := c.Collection.Find(context.Background(), filter)
-	defer cur.Close(context.Background())
+	err = c.Collection.FindOne(context.Background(), filter).Decode(&userIdDoc)
 
-	cur.All(context.Background(), &userIdDoc)
+	if err != nil {
+		return nil, err
+	}
 
-	userIdDoc.Followers = append(userIdDoc.Followers, followerId)
+	if mode == "follow" {
+		userIdDoc.Followers = append(userIdDoc.Followers, followerId)
+	}else if mode == "unfollow"{
+		// remove followerId from userIdDoc.Followers
+		isAnElement, index := util.Find(userIdDoc.Followers, followerId)
+		if isAnElement {
+			userIdDoc.Followers = util.RemoveIndex(userIdDoc.Followers, index)
+		}
+	}
 	
 	update := bson.M{
 		"$set": userIdDoc,
@@ -85,18 +105,27 @@ func (c *FollowRepository) UpdateFollowers(ctx context.Context, userId string, f
 	return response, nil
 }
 
-func (c *FollowRepository) UpdateFollowing(ctx context.Context, userId string, followedId string) (resFollow *mongo.UpdateResult, err error) {
+func (c *FollowRepository) UpdateFollowing(ctx context.Context, userId string, followedId string, mode string) (resFollow *mongo.UpdateResult, err error) {
 
 	//find follower struct in db
 	var userIdDoc domain.Follow
 	var filter bson.M = bson.M{}
 	filter = bson.M{"userid": userId}
-	cur, _ := c.Collection.Find(context.Background(), filter)
-	defer cur.Close(context.Background())
+	err = c.Collection.FindOne(context.Background(), filter).Decode(&userIdDoc)
 
-	cur.All(context.Background(), &userIdDoc)
+	if err != nil {
+		return nil, err
+	}
 
-	userIdDoc.Following = append(userIdDoc.Following, followedId)
+	if mode == "follow"{
+		userIdDoc.Following = append(userIdDoc.Following, followedId)
+	}else if mode == "unfollow"{
+		// remove follwedId from userIdDoc.following
+		isAnElement, index := util.Find(userIdDoc.Following, followedId)
+		if isAnElement {
+			userIdDoc.Following = util.RemoveIndex(userIdDoc.Following, index)
+		}
+	}
 	
 	update := bson.M{
 		"$set": userIdDoc,
@@ -111,7 +140,8 @@ func (c *FollowRepository) UpdateFollowing(ctx context.Context, userId string, f
 	return response, nil
 }
 
-func (c *FollowRepository) ValidateRelationshipExistence(ctx context.Context, userId string, followerId string) bool {
+
+func (c *FollowRepository) ValidateRelationshipExistence(ctx context.Context, userId string, followerId string) (isFollowing bool, isFollowed bool)  {
 	
 	var filter bson.M = bson.M{}
 	filter = bson.M{"userid": userId}
@@ -120,18 +150,17 @@ func (c *FollowRepository) ValidateRelationshipExistence(ctx context.Context, us
 	err := c.Collection.FindOne(context.Background(), filter).Decode(&followStruct)
 
 	if err != nil {
-		return false
+		return false, false
 	}
 	
-	if util.Find(followStruct.Following, followerId) {
-		return true
-	}
+	// check if follower is already following user
+	isFollowing, _ = util.Find(followStruct.Following, followerId)
 
-	if util.Find(followStruct.Followers, followerId) {
-		return true
-	}
+	// check if user is following follower
+	isFollowed, _ = util.Find(followStruct.Followers, followerId)
 
-	return false
+	return isFollowing, isFollowed
+
 }
 
 func (c *FollowRepository) ValidateUserRecordExistence(ctx context.Context, userId string) bool {

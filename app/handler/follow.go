@@ -2,6 +2,7 @@ package handler
 
 import (
 	"blog/domain"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -20,9 +21,9 @@ func NewFollowHandler(r *gin.RouterGroup, fe domain.FollowEntity, fr domain.Foll
 		FollowRepo: fr,
 	}
 
-	r.POST("/follow/:followerId/:followedId", handler.Follow)
+	r.POST("/follow/:userId/:followedUserId", handler.Follow)
 
-	// r.PUT("/unfollow/:followerId/:followedId", handler.Unfollow)
+	r.PUT("/unfollow/:userId/:unfollowedUserId", handler.UnFollow)
 
 	// query param userId
 	r.GET("/follows", handler.FetchFollow)
@@ -38,16 +39,17 @@ func (a *FollowHandler) FetchFollow(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": follows})
 }
 
-// CreateComment ...
+// CreateFollow ...
 func (a *FollowHandler) Follow(c *gin.Context) {
 	var follower domain.Follow
+	var followed domain.Follow
 	
-	followerId := c.Param("followerId")
-	followedId := c.Param("followedId")
+	userId := c.Param("userId")
+	followedId := c.Param("followedUserId")
 
 	// check if both IDs are same
 
-	if followerId == followedId {
+	if userId == followedId {
 		c.JSON(http.StatusNotAcceptable, gin.H{"error": "Invalid request"})
 		return
 	}
@@ -58,71 +60,177 @@ func (a *FollowHandler) Follow(c *gin.Context) {
 	// 	c.JSON(http.StatusNotAcceptable, gin.H{"error": "Unable to create follow"})
 	// 	return
 	// }
+	
+	// check if follower is already following user : followerFollowingUser
+	// check if user is following follower : userFollowingFollower
+	userFollowingFollowed, followedFollowingUser := a.FollowRepo.ValidateRelationshipExistence(c.Request.Context(), userId, followedId)
 
-	haveRelationship := a.FollowRepo.ValidateRelationshipExistence(c.Request.Context(), followerId, followedId)
-
-	if haveRelationship {
+	if followedFollowingUser && userFollowingFollowed {
 		c.JSON(http.StatusNotAcceptable, gin.H{"error": "Relationship exists already"})
 		return
 	}
 
-	// find out if users have existing record in the document.
+	// actual request is for user (who happens to be desired follower) to follow the second user 'followedUser'
+	// this request will pass if an only if user is NOT already following 'followerUser' i.e userFollowingFollower is false
 
-	followerHasRecord := a.FollowRepo.ValidateUserRecordExistence(c.Request.Context(), followerId)
+	if userFollowingFollowed {
+		c.JSON(http.StatusNotAcceptable, gin.H{"error": "Relationship exists already"})
+		return
+	}
+
+	// user can follow the desired user
+
+	// check if BOTH have records first.
+	userHasRecord := a.FollowRepo.ValidateUserRecordExistence(c.Request.Context(), userId)
 	followedHasRecord := a.FollowRepo.ValidateUserRecordExistence(c.Request.Context(), followedId)
 
-	if followerHasRecord {
-		c.JSON(http.StatusNotAcceptable, gin.H{"error": "follower has record already, you need to update it not create new one"})
-		// update follower record.
-		response, err := a.FollowEntity.UpdateFollowing(c.Request.Context(), followerId, followedId)
+	
+	if followedHasRecord || userHasRecord {
+		
+		// we check if userHasRecord has a record
+		if userHasRecord {
+			// if he does, we update the record by appending the followed user to user.following list
+			_, err := a.FollowEntity.UpdateFollowing(c.Request.Context(), userId, followedId, "follow")
+	
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+				return
+			}
+		}else{
+			// if he doesn't we create a record for user, then assign followed user to user.following list
+			follower.UserID = userId
+			follower.Following = []string{followedId}
 
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
-			return
+			response, err := a.FollowEntity.Follow(c.Request.Context(), follower, "one")
+			fmt.Println(response)
+
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+				return
+			}
 		}
-	
-		c.JSON(http.StatusCreated, gin.H{"data": response})
-		return
-	}
-	
-	if followedHasRecord {
-		c.JSON(http.StatusNotAcceptable, gin.H{"error": "followed has record already, you need to update it not create new one"})
-		// update followed record.
-		response, err := a.FollowEntity.UpdateFollowers(c.Request.Context(), followedId, followerId)
 
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
-			return
+		// we check if followedUser has a record
+		if followedHasRecord {
+			// if he does we update the user.Followers list with user
+			_, err := a.FollowEntity.UpdateFollowers(c.Request.Context(), followedId, userId, "follow")
+	
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+				return
+			}
+		}else{
+			// if he doesnt, we create a struct for him and assign user to user.followers list
+			followed.UserID = userId
+			followed.Followers = []string{userId}
+
+			_, err := a.FollowEntity.Follow(c.Request.Context(), follower, "one")
+
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+				return
+			}
+
 		}
-	
-		c.JSON(http.StatusCreated, gin.H{"data": response})
-		return
-	}
 
-	if 1==1 {
-		c.JSON(http.StatusNotAcceptable, gin.H{"error": "Done bro"})
+		c.JSON(http.StatusCreated, gin.H{"status": "SUCCESS"})
 		return
+
 	}
+	// if they dont. default course runs through
 	
-	// if it does update its document : add follwedId as an element of its following
-	
-	// otherwise, create its new struct
 	// creates struct for the follower
-	follower.UserID = followerId
+	follower.UserID = userId
 	follower.Following = []string{followedId}
 
-	response, err := a.FollowEntity.Follow(c.Request.Context(), follower)
+	// to create followed struct too, set mode as "many"
+	response, err := a.FollowEntity.Follow(c.Request.Context(), follower, "many")
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"data": response})
+	c.JSON(http.StatusCreated, gin.H{"status": response})
+}
+
+func (a *FollowHandler) UnFollow(c *gin.Context){
+
+	/*
+	work flow.
+	get the userids.
+	userId - user who is unfollowing another user
+	unfollowedId - user who is being unfollowed
+
+	unfollow defination - a process where by a userId is removed from unfollowedId.followers list
+
+	flow: 
+
+	check if userId follows unfollowed exist, else reject request
+	if above is true, remove userId from unfollowedId.followers list
+	then remove unfollowedId from userID.following list
+	*/
+	
+	userId := c.Param("userId")
+	followedId := c.Param("unfollowedUserId")
+
+	// check if both IDs are same
+
+	if userId == followedId {
+		c.JSON(http.StatusNotAcceptable, gin.H{"error": "Invalid request"})
+		return
+	}
+	
+	// check if both IDs are valid userIDs
+
+	// if !isValid {
+	// 	c.JSON(http.StatusNotAcceptable, gin.H{"error": "Unable to create follow"})
+	// 	return
+	// }
+	
+
+	// check if BOTH have record
+	userHasRecord := a.FollowRepo.ValidateUserRecordExistence(c.Request.Context(), userId)
+	followedHasRecord := a.FollowRepo.ValidateUserRecordExistence(c.Request.Context(), followedId)
+
+	if userHasRecord && followedHasRecord {
+		// check if follower is already following user : followerFollowingUser
+		// check if user is following follower : userFollowingFollower
+		userFollowingFollowed, _ := a.FollowRepo.ValidateRelationshipExistence(c.Request.Context(), userId, followedId)
+
+		// user can unfollow the desired user
+		// remove user from unfollowed.folowers list
+		if !userFollowingFollowed {
+			c.JSON(http.StatusNotAcceptable, gin.H{"error": "Invalid request"})
+			return
+		}
+		_, err := a.FollowEntity.UpdateFollowers(c.Request.Context(), followedId, userId, "unfollow")
+	
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+			return
+		}
+
+		// remove unfollowed from user.following list
+		_, err = a.FollowEntity.UpdateFollowing(c.Request.Context(), userId, followedId, "unfollow")
+	
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+			return
+		}
+	}else{
+		c.JSON(http.StatusNotAcceptable, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "SUCCESS"})
 }
 
 func (a *FollowHandler) DeleteFollowRecord(c *gin.Context) {
 
 	commResponse, _ := a.FollowEntity.DeleteFollowRecord(c.Request.Context(), c.Param("followid"))
-	c.JSON(http.StatusOK, gin.H{"data": commResponse})
+	if commResponse.DeletedCount == 0 {
+		c.JSON(http.StatusOK, gin.H{"status": "FAILED"})
+	}
+	c.JSON(http.StatusOK, gin.H{"status": "SUCCESS"})
 }

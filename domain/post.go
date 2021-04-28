@@ -14,19 +14,20 @@ import (
 // Post struct
 type Post struct {
 	_id            string
-	AuthorID       string `json:"authorID,omitempty"`
-	Title          string `json:"title,omitempty"`
+	AuthorID       string `json:"authorID"`
+	Title          string `json:"title"`
+	Summary		   string `json:"summary"`
 	Slug           string
 	URL            string
-	Categories     []string    `json:"categories,omitempty"`
+	Categories     []string    `json:"categories"`
 	Likes          []uuid.UUID // user Id array
 	Like_count     int
 	Comments       []string // comment Id array
 	Comments_count int
-	Article        string `json:"article,omitempty"`
+	Article        string `json:"article"`
 	DateCreated    time.Time
 	DateUpdated    time.Time
-	Status         string `json:"status,omitempty"`
+	Status         string `json:"status"`
 }
 
 // PostEntity interface

@@ -21,8 +21,8 @@ func NewFollowEntity(a domain.FollowRepository) domain.FollowEntity {
 	}
 }
 
-func (a *FollowEntity) Follow(ctx context.Context, follow domain.Follow) (res *mongo.InsertManyResult, err error){
-	res, err = a.followRepo.CreateFollow(ctx, follow)
+func (a *FollowEntity) Follow(ctx context.Context, follow domain.Follow, mode string) (status string, err error){
+	status, err = a.followRepo.CreateFollow(ctx, follow, mode)
 	return 
 }
 
@@ -33,13 +33,13 @@ func (a *FollowEntity) FetchFollows(ctx context.Context, ginContext *gin.Context
 }
 
 
-func (a *FollowEntity) UpdateFollowers(ctx context.Context, userId string, followerId string) (res *mongo.UpdateResult, err error){
-	res, err = a.followRepo.UpdateFollowers(ctx, userId, followerId)
+func (a *FollowEntity) UpdateFollowers(ctx context.Context, userId string, followerId string, mode string) (res *mongo.UpdateResult, err error){
+	res, err = a.followRepo.UpdateFollowers(ctx, userId, followerId, mode)
 	return 
 }
 
-func (a *FollowEntity) UpdateFollowing(ctx context.Context, userId string, followedId string) (res *mongo.UpdateResult, err error){
-	res, err = a.followRepo.UpdateFollowing(ctx, userId, followedId)
+func (a *FollowEntity) UpdateFollowing(ctx context.Context, userId string, followedId string, mode string) (res *mongo.UpdateResult, err error){
+	res, err = a.followRepo.UpdateFollowing(ctx, userId, followedId, mode)
 	return 
 }
 

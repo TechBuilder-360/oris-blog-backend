@@ -12,9 +12,9 @@ import (
 // Comment struct
 type Comment struct {
 	_id string
-	PostID string `json:"postid,omitempty"`
-	Author string `json:"authorid,omitempty"` // comment author id/name
-	Text string `json:"text,omitempty"`
+	PostID string `json:"postid"`
+	Author string `json:"authorid"` // comment author id/name
+	Text string `json:"text"`
 	DateCreated time.Time
 	Replies [] string //userID array
 	RepliesCount int

@@ -2,6 +2,6 @@ package domain
 
 // UserBookmark struct
 type UserBookmark struct {
-	UserID string `json:"userid,omitempty"`
-	Bookmarks [] string `json:"bookmarks,omitempty"`
+	UserID string `json:"userid"`
+	Bookmarks [] string `json:"bookmarks"`
 }
