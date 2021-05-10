@@ -2,7 +2,6 @@ package handler
 
 import (
 	"blog/domain"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -66,7 +65,7 @@ func (a *FollowHandler) Follow(c *gin.Context) {
 	userFollowingFollowed, followedFollowingUser := a.FollowRepo.ValidateRelationshipExistence(c.Request.Context(), userId, followedId)
 
 	if followedFollowingUser && userFollowingFollowed {
-		c.JSON(http.StatusNotAcceptable, gin.H{"error": "Relationship exists already"})
+		c.JSON(http.StatusNotAcceptable, gin.H{"message": "Relationship exists already"})
 		return
 	}
 
@@ -74,7 +73,7 @@ func (a *FollowHandler) Follow(c *gin.Context) {
 	// this request will pass if an only if user is NOT already following 'followerUser' i.e userFollowingFollower is false
 
 	if userFollowingFollowed {
-		c.JSON(http.StatusNotAcceptable, gin.H{"error": "Relationship exists already"})
+		c.JSON(http.StatusNotAcceptable, gin.H{"message": "Relationship exists already"})
 		return
 	}
 
@@ -93,7 +92,7 @@ func (a *FollowHandler) Follow(c *gin.Context) {
 			_, err := a.FollowEntity.UpdateFollowing(c.Request.Context(), userId, followedId, "follow")
 	
 			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+				c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 				return
 			}
 		}else{
@@ -101,11 +100,10 @@ func (a *FollowHandler) Follow(c *gin.Context) {
 			follower.UserID = userId
 			follower.Following = []string{followedId}
 
-			response, err := a.FollowEntity.Follow(c.Request.Context(), follower, "one")
-			fmt.Println(response)
+			_, err := a.FollowEntity.Follow(c.Request.Context(), follower, "one")
 
 			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+				c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 				return
 			}
 		}
@@ -116,7 +114,7 @@ func (a *FollowHandler) Follow(c *gin.Context) {
 			_, err := a.FollowEntity.UpdateFollowers(c.Request.Context(), followedId, userId, "follow")
 	
 			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+				c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 				return
 			}
 		}else{
@@ -127,7 +125,7 @@ func (a *FollowHandler) Follow(c *gin.Context) {
 			_, err := a.FollowEntity.Follow(c.Request.Context(), follower, "one")
 
 			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+				c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 				return
 			}
 
@@ -147,7 +145,7 @@ func (a *FollowHandler) Follow(c *gin.Context) {
 	response, err := a.FollowEntity.Follow(c.Request.Context(), follower, "many")
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
@@ -207,7 +205,7 @@ func (a *FollowHandler) UnFollow(c *gin.Context){
 		_, err := a.FollowEntity.UpdateFollowers(c.Request.Context(), followedId, userId, "unfollow")
 	
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
@@ -215,7 +213,7 @@ func (a *FollowHandler) UnFollow(c *gin.Context){
 		_, err = a.FollowEntity.UpdateFollowing(c.Request.Context(), userId, followedId, "unfollow")
 	
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 	}else{
@@ -228,9 +226,9 @@ func (a *FollowHandler) UnFollow(c *gin.Context){
 
 func (a *FollowHandler) DeleteFollowRecord(c *gin.Context) {
 
-	commResponse, _ := a.FollowEntity.DeleteFollowRecord(c.Request.Context(), c.Param("followid"))
+	commResponse, err := a.FollowEntity.DeleteFollowRecord(c.Request.Context(), c.Param("followid"))
 	if commResponse.DeletedCount == 0 {
-		c.JSON(http.StatusOK, gin.H{"status": "FAILED"})
+		c.JSON(http.StatusOK, gin.H{"status": "FAILED", "message": err.Error()})
 	}
-	c.JSON(http.StatusOK, gin.H{"status": "SUCCESS"})
+	c.JSON(http.StatusOK, gin.H{"status": "SUCCESS", "message" : "Record Deleted Successfully"})
 }

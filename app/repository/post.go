@@ -2,9 +2,11 @@ package repository
 
 import (
 	"blog/domain"
+	"blog/util"
 	"context"
 	"errors"
 	"fmt"
+	"math/rand"
 	"net/url"
 	"strings"
 	"time"
@@ -39,7 +41,7 @@ func (c *PostRepository) FetchPost(ctx context.Context, ginContext *gin.Context)
 	}
 
 	// get by authorID
-	if ginContext.Query("authorid") != "" && ginContext.Query("postid") == "" {
+	if ginContext.Query("authorid") != "" {
 		author := ginContext.Query("authorid")
 		filter = bson.M{"authorid": author}
 	}
@@ -56,7 +58,14 @@ func (c *PostRepository) FetchPost(ctx context.Context, ginContext *gin.Context)
 	if ginContext.Query("authorid") != "" && ginContext.Query("status") != "" {
 		author := ginContext.Query("authorid")
 		status := ginContext.Query("status")
-		filter = bson.M{"author": author, "status": status}
+		filter = bson.M{"authorid": author, "status": status}
+	}
+
+	// get by author and slug
+	if ginContext.Query("authorid") != "" && ginContext.Query("slug") != "" {
+		author := ginContext.Query("authorid")
+		slug := ginContext.Query("slug")
+		filter = bson.M{"authorid": author, "slug": slug}
 	}
 
 	// get by status
@@ -66,17 +75,17 @@ func (c *PostRepository) FetchPost(ctx context.Context, ginContext *gin.Context)
 	}
 
 	// get by category //how to search for more than one option
-	if ginContext.Query("categories") != "" {
-		categories := ginContext.Query("categories")
+	if ginContext.Query("category") != "" {
+		categories := ginContext.Query("category")
 		filter = bson.M{"categories": categories}
 	}
 
 	cur, err := c.Collection.Find(context.Background(), filter)
-	defer cur.Close(context.Background())
 
 	if err != nil {
 		return post, err
 	}
+	defer cur.Close(context.Background())
 
 	cur.All(context.Background(), &post)
 
@@ -94,6 +103,7 @@ func (c *PostRepository) CreatePost(ctx context.Context, reqPost domain.Post) (r
 	post.URL = fmt.Sprintf("%s/%s/%s/", blogBaseURL, url.QueryEscape(post.AuthorID), post.Slug)
 
 	post.DateCreated = time.Now()
+	post.DateUpdated = post.DateCreated
 	post.Like_count = 0
 
 	response, err := c.Collection.InsertOne(context.Background(), post)
@@ -105,7 +115,7 @@ func (c *PostRepository) CreatePost(ctx context.Context, reqPost domain.Post) (r
 	return response, nil
 }
 
-func (c *PostRepository) UpdatePost(ctx context.Context, id string, post domain.Post) (resPost *mongo.UpdateResult, err error) {
+func (c *PostRepository) UpdatePost(ctx context.Context, id string, post domain.Post) (status string, err error) {
 
 	post.DateUpdated = time.Now()
 
@@ -117,10 +127,15 @@ func (c *PostRepository) UpdatePost(ctx context.Context, id string, post domain.
 	response, err := c.Collection.UpdateOne(context.Background(), bson.M{"_id": objID}, update)
 
 	if err != nil {
-		return response, err
+		return "FAILED", err
 	}
 
-	return response, nil
+	if response.ModifiedCount == 0 {
+		// update failed
+		return "FAILED", errors.New("update failed")
+	}
+
+	return "SUCCESS", nil
 }
 
 func (c *PostRepository) InsertPostComment(ctx context.Context, commentID *mongo.InsertOneResult, postid string) (resPost *mongo.UpdateResult, err error) {
@@ -161,9 +176,11 @@ func (c *PostRepository) RemovePostComment(ctx context.Context, postid string, c
 		return nil, err
 	}
 
-	commentIndex := indexOf(fmt.Sprintf("%v", commentObjID), post.Comments)
+	// commentIndex := indexOf(fmt.Sprintf("%v", commentObjID), post.Comments)
+	_, commentIndex := util.Find(post.Comments, fmt.Sprintf("%v", commentObjID))
 
-	errMessage := errors.New("Comment does not exist for this post")
+	errMessage := errors.New("comment does not exist for this post")
+
 	if commentIndex == -1 {
 		return nil, errMessage
 	}
@@ -185,27 +202,68 @@ func (c *PostRepository) RemovePostComment(ctx context.Context, postid string, c
 	return response, nil
 }
 
-func (c *PostRepository) DeletePost(ctx context.Context, id string) (resPost *mongo.DeleteResult, err error) {
+func (c *PostRepository) DeletePost(ctx context.Context, id string) (status string, err error) {
 	objID, _ := primitive.ObjectIDFromHex(id)
-	response, err := c.Collection.DeleteOne(context.Background(), bson.M{"_id": objID})
+	_, err = c.Collection.DeleteOne(context.Background(), bson.M{"_id": objID})
 
 	if err != nil {
-		return response, err
+		return "FAILED", err
 	}
 
-	return response, nil
+	return "SUCCESS", nil
 }
 
-func (c *PostRepository) ValidatePostExistence(ctx context.Context, postid string) bool {
+func (c *PostRepository) ValidatePostExistence(ctx context.Context, authorid string, postid string) bool {
 	var post domain.Post
 	objID, _ := primitive.ObjectIDFromHex(postid)
-	err := c.Collection.FindOne(context.Background(), bson.M{"_id": objID}).Decode(&post)
+	var filter bson.M = bson.M{"_id": objID}
+
+	if authorid != ""{
+		filter = bson.M{"_id": objID, "authorid" : authorid}
+	}
+	err := c.Collection.FindOne(context.Background(), filter).Decode(&post)
+
+	return  err == nil
+}
+
+func (c *PostRepository) LikePost(ctx context.Context, userId string, postid string, mode string) (string, error){
+	var post domain.Post
+	postObjID, _ := primitive.ObjectIDFromHex(postid)
+
+	err := c.Collection.FindOne(context.Background(), bson.M{"_id": postObjID}).Decode(&post)
+	isElement, index := util.Find(post.Likes, userId)
 
 	if err != nil {
-		return false
+		return "FAILED", err
 	}
 
-	return true
+	if mode == "add"{
+
+		if isElement {
+			return "FAILED", errors.New("post liked already")
+		}
+
+		post.Likes = append(post.Likes, userId)
+	}else if mode == "remove" {
+		
+		if isElement {
+			post.Likes = util.RemoveIndex(post.Likes, index)
+		}
+	}
+	
+	post.Like_count = len(post.Likes)
+
+	update := bson.M{
+		"$set": post,
+	}
+
+	_, err = c.Collection.UpdateOne(context.Background(), bson.M{"_id": postObjID}, update)
+
+	if err != nil {
+		return "FAILED", err
+	}
+
+	return "SUCCESS", nil
 }
 
 func createSlug(title string) (result string) {
@@ -215,7 +273,7 @@ func createSlug(title string) (result string) {
 	for i, char := range pseudoStr {
 		ascii := int(char)
 		if strings.Contains(str, string(pseudoStr[i])) {
-			if isAlphabet(ascii) == false {
+			if !isAlphabet(ascii) {
 				str = strings.Replace(str, string(str[i]), "", -1)
 			}
 		}
@@ -224,6 +282,12 @@ func createSlug(title string) (result string) {
 
 	// replace whitespaces with hypen
 	result = strings.ReplaceAll(str, " ", "-")
+	// append random value to slug
+	min := 1000
+    max := 99999
+
+	result = fmt.Sprintf("%s-%d",result, rand.Intn(max - min) + min)
+	// validate slug existence
 	return
 }
 
@@ -239,12 +303,3 @@ func isAlphabet(i int) bool {
 
 	return false
 }
-
-func indexOf(element string, data []string) (int) {
-	for k, v := range data {
-		if element == v {
-			return k
-		}
-	}
-	return -1    //not found.
- }

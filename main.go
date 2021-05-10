@@ -77,10 +77,14 @@ func main() {
 	BLOG_COLLECTION, _ := viper.Get("BLOG_COLLECTION").(string)
 	COMMENT_COLLECTION, _ := viper.Get("COMMENT_COLLECTION").(string)
 	FOLLOW_COLLECTION, _ := viper.Get("FOLLOW_COLLECTION").(string)
+	BOOKMARK_COLLECTION, _ := viper.Get("BOOKMARK_COLLECTION").(string)
+	// USER_INTEREST_COLLECTION, _ := viper.Get("USER_INTEREST_COLLECTION").(string)
 
 	postCollection := config.GetEntityDbCollection(DATABASE_NAME, DATABASE_ADDRESS, BLOG_COLLECTION)
 	commentCollection := config.GetEntityDbCollection(DATABASE_NAME, DATABASE_ADDRESS, COMMENT_COLLECTION)
 	followCollection := config.GetEntityDbCollection(DATABASE_NAME, DATABASE_ADDRESS, FOLLOW_COLLECTION)
+	bookmarkCollection := config.GetEntityDbCollection(DATABASE_NAME, DATABASE_ADDRESS, BOOKMARK_COLLECTION)
+	// userInterestCollection := config.GetEntityDbCollection(DATABASE_NAME, DATABASE_ADDRESS, USER_INTEREST_COLLECTION)
 
 	repoPost := _repo.NewPostRepository(postCollection)
 	entityPost := _entity.NewPostEntity(repoPost)
@@ -91,12 +95,19 @@ func main() {
 	repoFollow := _repo.NewFollowRepository(followCollection)
 	entityFollow := _entity.NewFollowEntity(repoFollow)
 
+	repoBookmark := _repo.NewBookmarkRepository(bookmarkCollection)
+	entityBookmark := _entity.NewBookmarkEntity(repoBookmark)
+
+	// repoUserInterest := _repo.NewUserInterestRepository(userInterestCollection)
+	// entityUserInterest := _entity.NewUserInterestEntity(repoUserInterest)
+
 
 	api := app.Group("/api/v1/blog")
 
 	_handler.NewPostHandler(api, entityPost)
 	_handler.NewCommentHandler(api, entityComment, repoPost)
 	_handler.NewFollowHandler(api, entityFollow, repoFollow)
+	_handler.NewBookmarkHandler(api, entityBookmark)
 
 	// - No origin allowed by default
 	// - GET,POST, PUT, HEAD methods
