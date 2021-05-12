@@ -6,11 +6,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/rand"
+
 	"net/url"
 	"strings"
 	"time"
 
+	"github.com/JesusIslam/tldr"
+	readingtime "github.com/begmaroman/reading-time"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -100,11 +102,18 @@ func (c *PostRepository) CreatePost(ctx context.Context, reqPost domain.Post) (r
 	// https://<base_ur>/username/<slug>/
 	blogBaseURL := "https://oris-blog"
 
+	// URL is unused and possibly removed from the post model in the future. A post is gotten by author and slug
 	post.URL = fmt.Sprintf("%s/%s/%s/", blogBaseURL, url.QueryEscape(post.AuthorID), post.Slug)
 
 	post.DateCreated = time.Now()
 	post.DateUpdated = post.DateCreated
 	post.Like_count = 0
+	post.ReadTime = fmt.Sprintf("%v", readingtime.Estimate(post.Article).Text)
+	
+	intoSentences := 2
+	bag := tldr.New()
+	result, _ := bag.Summarize(post.Article, intoSentences)
+	post.Summary = result[0]
 
 	response, err := c.Collection.InsertOne(context.Background(), post)
 
@@ -282,12 +291,15 @@ func createSlug(title string) (result string) {
 
 	// replace whitespaces with hypen
 	result = strings.ReplaceAll(str, " ", "-")
-	// append random value to slug
-	min := 1000
-    max := 99999
+	
+	split := strings.Split(time.Now().String(), ".")
+	x := split[0]
+	strCon := strings.Replace(x, "T", "", 1)
+	strCon = strings.Replace(strCon, "-", "", 2)
+	strCon = strings.Replace(strCon, ":", "", 2)
+	strCon = strings.Replace(strCon, " ", "", 2)
 
-	result = fmt.Sprintf("%s-%d",result, rand.Intn(max - min) + min)
-	// validate slug existence
+	result = fmt.Sprintf("%s-%s",result, strCon)
 	return
 }
 

@@ -51,7 +51,7 @@ func (a *PostHandler) CreatePost(c *gin.Context) {
 
 	// check that required fields are available
 
-	if reqPost.Article != "" && reqPost.Status != "" && reqPost.Title != "" && reqPost.AuthorID != "" && reqPost.Summary != "" {
+	if reqPost.Article != "" && reqPost.Status != "" && reqPost.Title != "" && reqPost.AuthorID != "" {
 		response, _ := a.PostEntity.CreatePost(c.Request.Context(), reqPost)
 		c.JSON(http.StatusCreated, gin.H{"data": response.InsertedID})
 	}else{

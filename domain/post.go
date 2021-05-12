@@ -15,7 +15,7 @@ type Post struct {
 	_id            string
 	AuthorID       string `json:"authorID"`
 	Title          string `json:"title"`
-	Summary		   string `json:"summary"`
+	Summary		   string
 	CoverImage	   string `json:"coverimage"`
 	Slug           string
 	URL            string
@@ -28,6 +28,7 @@ type Post struct {
 	DateCreated    time.Time
 	DateUpdated    time.Time
 	Status         string `json:"status"`
+	ReadTime	   string
 }
 
 // PostEntity interface
