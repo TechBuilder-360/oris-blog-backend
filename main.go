@@ -67,7 +67,7 @@ func sanityCheck() {
 
 func main() {
 	sanityCheck()
-	// gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.ReleaseMode)
 	// gin.SetMode(gin.TestMode)
 
 	app := gin.Default()
