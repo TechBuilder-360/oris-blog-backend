@@ -1,9 +1,6 @@
 # oris-blog-backend
 Oris Blog
 
-
-npm i ckeditor5
-
 ## Environment Setup
 
 Download and install [Go](https://golang.org/doc/install)
