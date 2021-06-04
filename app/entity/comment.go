@@ -34,13 +34,13 @@ func (a *CommentEntity) CreateComment(c context.Context, Comment domain.Comment)
 }
 
 //UpdateComment creates a single Comment record...
-func (a *CommentEntity) UpdateComment(c context.Context, id string, Comment domain.Comment) (res *mongo.UpdateResult, err error) {
+func (a *CommentEntity) UpdateComment(c context.Context, id string, Comment domain.Comment) (res string, err error) {
 	res, err = a.commentRepo.UpdateComment(c, id, Comment)
 	return
 }
 
 //DeleteComment creates a single Comment record...
-func (a *CommentEntity) DeleteComment(c context.Context, commentid string) (res *mongo.DeleteResult, err error) {
+func (a *CommentEntity) DeleteComment(c context.Context, commentid string) (res string, err error) {
 	res, err = a.commentRepo.DeleteComment(c, commentid)
 	return
 }

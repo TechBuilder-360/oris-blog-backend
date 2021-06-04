@@ -20,7 +20,6 @@ type FollowEntity interface {
 	Follow(ctx context.Context, follow Follow, mode string) (string, error)
 	UpdateFollowers(ctx context.Context, userId string, followerId string, mode string) (resFollow *mongo.UpdateResult, err error)
 	UpdateFollowing(ctx context.Context, userId string, followedId string, mode string) (resFollow *mongo.UpdateResult, err error)
-	// UnFollow(ctx context.Context, id string, follow Follow) (string, error)
 
 	FetchFollows(ctx context.Context, ginContext *gin.Context) (res []primitive.M, err error)
 	DeleteFollowRecord(ctx context.Context, commentid string) (*mongo.DeleteResult, error)
@@ -32,9 +31,6 @@ type FollowRepository interface {
 	CreateFollow(ctx context.Context, follow Follow, mode string) (string, error)
 	UpdateFollowers(ctx context.Context, userId string, followerId string, mode string) (resFollow *mongo.UpdateResult, err error)
 	UpdateFollowing(ctx context.Context, userId string, followedId string, mode string) (resFollow *mongo.UpdateResult, err error)
-	// UnFollow(ctx context.Context, id string, follow Follow) (string, error)
-
-	// DeleteFollow(ctx context.Context, id string, follow Follow) (*mongo.UpdateResult, error)
 
 	FetchFollows(ctx context.Context, ginContext *gin.Context) (res []primitive.M, err error)
 

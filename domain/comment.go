@@ -27,8 +27,8 @@ type Comment struct {
 type CommentEntity interface {
 
 	CreateComment(ctx context.Context, comment Comment) (*mongo.InsertOneResult, error)
-	UpdateComment(ctx context.Context, id string, comment Comment) (*mongo.UpdateResult, error)
-	DeleteComment(ctx context.Context, commentid string) (*mongo.DeleteResult, error)
+	UpdateComment(ctx context.Context, id string, comment Comment) (string, error)
+	DeleteComment(ctx context.Context, commentid string) (string, error)
 
 	FetchComment(ctx context.Context, c *gin.Context) ([]primitive.M, error)
 }
@@ -37,8 +37,8 @@ type CommentEntity interface {
 type CommentRepository interface {
 
 	CreateComment(ctx context.Context, comment Comment) (*mongo.InsertOneResult, error)
-	UpdateComment(ctx context.Context, id string, comment Comment) (*mongo.UpdateResult, error)
-	DeleteComment(ctx context.Context, commentid string) (*mongo.DeleteResult, error)
+	UpdateComment(ctx context.Context, id string, comment Comment) (string, error)
+	DeleteComment(ctx context.Context, commentid string) (string, error)
 
 	FetchComment(ctx context.Context, c *gin.Context) ([]primitive.M, error)
 }

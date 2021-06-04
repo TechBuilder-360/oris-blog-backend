@@ -3,6 +3,7 @@ package repository
 import (
 	"blog/domain"
 	"context"
+	"errors"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -92,7 +93,7 @@ func (c *CommentRepository) CreateComment(ctx context.Context, reqComment domain
 	return response, nil
 }
 
-func (c *CommentRepository) UpdateComment(ctx context.Context, id string, comment domain.Comment) (resComment *mongo.UpdateResult, err error) {
+func (c *CommentRepository) UpdateComment(ctx context.Context, id string, comment domain.Comment) (resComment string, err error) {
 	
 	// comment.DateUpdated = time.Now()
 
@@ -104,20 +105,27 @@ func (c *CommentRepository) UpdateComment(ctx context.Context, id string, commen
 	response, err := c.Collection.UpdateOne(context.Background(), bson.M{"_id": objID}, update)
 
 	if err != nil {
-		return response, err
+		return "FAILED", err
 	}
 
-	return response, nil
+	if response.ModifiedCount == 0 {
+		return "FAILED", errors.New("update failed")
+	}
+	return "SUCCESS", nil
 }
 
-func (c *CommentRepository) DeleteComment(ctx context.Context, commentid string) (resComment *mongo.DeleteResult, err error) {
+func (c *CommentRepository) DeleteComment(ctx context.Context, commentid string) (resComment string, err error) {
 	commentObjID, _ := primitive.ObjectIDFromHex(commentid)
 
 	response, err := c.Collection.DeleteOne(context.Background(), bson.M{"_id": commentObjID})
 
 	if err != nil {
-		return response, err
+		return "FAILED", err
 	}
 
-	return response, nil
+	if response.DeletedCount == 0 {
+		return "FAILED", errors.New("delete failed")
+	}
+
+	return "SUCCESS", nil
 }
