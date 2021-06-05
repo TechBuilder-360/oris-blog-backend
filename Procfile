@@ -1,1 +1,1 @@
-web: blog
+web: go install -v . && blog
