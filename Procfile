@@ -1,1 +1,2 @@
-web: go install -v . && blog
+release: go install -v .
+web: blog
