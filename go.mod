@@ -3,6 +3,7 @@ module blog
 // +heroku goVersion go1.15
 go 1.15
 
+// +heroku install .
 require (
 	github.com/JesusIslam/tldr v0.6.0
 	github.com/begmaroman/reading-time v0.0.0-20200518075747-77e4aae57578

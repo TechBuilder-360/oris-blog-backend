@@ -119,7 +119,11 @@ func main() {
 	app.Use(cors.New(config))
 
 	//Port
-	PORT, _ := viper.Get("PORT").(string)
+	PORT, isAvailable := viper.Get("PORT").(string)
+    if !isAvailable {
+        PORT = ":8000"
+    } 
+	
 	app.Run(PORT)
 
 }
