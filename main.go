@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-contrib/cors"
 
@@ -128,11 +129,12 @@ func main() {
 	app.Use(cors.New(config))
 
 	//Port
-	PORT, isAvailable := viper.Get("PORT").(string)
-    if !isAvailable {
-        PORT = ":8000"
-    } 
-	
-	app.Run(PORT)
+	PORT := fmt.Sprintf(":%s", os.Getenv("PORT"))
+	vPORT, _ := viper.Get("PORT").(string)
 
+    if PORT == ":" {
+        PORT = vPORT
+    } 
+
+	app.Run(vPORT)
 }
