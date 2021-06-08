@@ -4,6 +4,7 @@ import (
 	"blog/config"
 	"fmt"
 	"log"
+	"net/http"
 
 	"github.com/gin-contrib/cors"
 
@@ -101,6 +102,14 @@ func main() {
 	// repoUserInterest := _repo.NewUserInterestRepository(userInterestCollection)
 	// entityUserInterest := _entity.NewUserInterestEntity(repoUserInterest)
 
+
+	// app.Static("/templates", "./templates") // works with templates/index.html
+	app.GET("/", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, "docs/")
+	})
+
+	
+	app.StaticFS("/docs", http.Dir("./templates"))
 
 	api := app.Group("/api/v1/blog")
 

@@ -22,13 +22,13 @@ func NewCommentHandler(r *gin.RouterGroup, ce domain.CommentEntity, pr domain.Po
 	}
 
 	//queryparams  (no params returns all Comments)
-	r.GET("/comment", handler.FindComment)
+	r.GET("/comments", handler.FindComment)
 
-	r.POST("/comment", handler.CreateComment)
+	r.POST("/comments", handler.CreateComment)
 
-	r.PUT("/comment/:commentid", handler.UpdateComment)
+	r.PUT("/comments/:commentid", handler.UpdateComment)
 
-	r.DELETE("/comment/:postid/:commentid", handler.DeleteComment)
+	r.DELETE("/comments/:postid/:commentid", handler.DeleteComment)
 }
 
 // FindComment ... depending on query parameters

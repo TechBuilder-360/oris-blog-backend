@@ -31,6 +31,14 @@ Run `go build` to build app or Run `go run main.go` to run app
 
 Run `./blog.[extension]` to run the built app. 
 
+## API Docs
+1. To set up go-swagger, run `go get -u github.com/go-swagger/go-swagger/cmd/swagger`
+1. Run `swagger generate spec -o ./swagger.json --scan-models`
+1. Run `swagger serve -F=swagger swagger.json`
+
+To convert generated json to html
+1. Run `npm install -g redoc-cli`
+1. Run `redoc-cli bundle -o templates/index.html swagger.json`
 
 ### Run Test Suite
 

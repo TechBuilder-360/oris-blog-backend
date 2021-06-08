@@ -50,25 +50,6 @@ func (c *CommentRepository) FetchComment(ctx context.Context, ginContext *gin.Co
 		filter = bson.M{"authorid": author, "_id": objID}
 	}
 
-	// get by author and status
-	if ginContext.Query("authorid") != "" && ginContext.Query("status") != "" {
-		author := ginContext.Query("authorid")
-		status := ginContext.Query("status")
-		filter = bson.M{"author": author, "status": status}
-	}
-
-	// get by status
-	if ginContext.Query("status") != "" && ginContext.Query("authorid") == "" {
-		status := ginContext.Query("status")
-		filter = bson.M{"status": status}
-	}
-
-	// get by category //how to search for more than one option
-	if ginContext.Query("categories") != ""{
-		categories := ginContext.Query("categories")
-		filter = bson.M{"categories": categories}
-	}
-
 	cur, err := c.Collection.Find(context.Background(), filter)
 	defer cur.Close(context.Background())
 
@@ -94,8 +75,6 @@ func (c *CommentRepository) CreateComment(ctx context.Context, reqComment domain
 }
 
 func (c *CommentRepository) UpdateComment(ctx context.Context, id string, comment domain.Comment) (resComment string, err error) {
-	
-	// comment.DateUpdated = time.Now()
 
 	update := bson.M{
 		"$set": comment,

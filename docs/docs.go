@@ -3,10 +3,10 @@
 //
 // Documentation of Oris Blog API.
 //
-//     Schemes: http
-//     BasePath: /
+//     Schemes: https
+//     BasePath: /api/v1/blog/
 //     Version: 1.0.0
-//     Host: some-url.com
+//     Host: demo-orisblog-backend.herokuapp.com
 //
 //     Consumes:
 //     - application/json

@@ -1,0 +1,818 @@
+{
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "https"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "Documentation of Oris Blog API.",
+    "title": "Oris Blog.",
+    "version": "1.0.0"
+  },
+  "host": "demo-orisblog-backend.herokuapp.com",
+  "basePath": "/api/v1/blog/",
+  "paths": {
+    "/bookmarks/{userId}": {
+      "get": {
+        "tags": [
+          "bookmark-CRUD"
+        ],
+        "summary": "Fetch User Bookmarks.",
+        "operationId": "GetBookmarkRequest",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "UserID",
+            "description": "User's ID",
+            "name": "userId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/getBookmarkResponse"
+          }
+        }
+      }
+    },
+    "/bookmarks/{userId}/{postId}/{operation}": {
+      "put": {
+        "description": "Update User Bookmarks: Add or remove posts",
+        "tags": [
+          "bookmark-CRUD"
+        ],
+        "operationId": "UpdateBookmarkRequest",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "UserID",
+            "description": "Users ID",
+            "name": "userId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "PostID",
+            "description": "Post ID",
+            "name": "postId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Operation",
+            "description": "Operation: 'add' or 'remove'",
+            "name": "operation",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/updateBookmarkResponse"
+          }
+        }
+      }
+    },
+    "/comments": {
+      "get": {
+        "tags": [
+          "comment-CRUD"
+        ],
+        "summary": "Fetch Comments.",
+        "operationId": "GetCommentRequest",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "AuthorID",
+            "description": "Fetch Comments by authorid or commentid or both",
+            "name": "authorid",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "CommentID",
+            "name": "commentid",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/getCommentsResponse"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "comment-CRUD"
+        ],
+        "summary": "Create a comment.",
+        "operationId": "CreateCommentRequest",
+        "parameters": [
+          {
+            "description": "Required body parameter to create a comment",
+            "name": "Body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CreateCommentRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/CreatePostResponse"
+          }
+        }
+      }
+    },
+    "/comments/{commentid}": {
+      "put": {
+        "description": "Update Comment",
+        "tags": [
+          "comment-CRUD"
+        ],
+        "operationId": "updateCommentRequest",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "CommentID",
+            "description": "Comment to be updated",
+            "name": "commentid",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Updated data of comment",
+            "name": "Comment",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Comment"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/updateCommentResponse"
+          }
+        }
+      },
+      "delete": {
+        "description": "Delete Comment",
+        "tags": [
+          "comment-CRUD"
+        ],
+        "operationId": "deleteCommentRequest",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "CommentID",
+            "description": "Comment to be deleted",
+            "name": "commentid",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/deleteCommentResponse"
+          }
+        }
+      }
+    },
+    "/follow/{userId}/{followedUserId}": {
+      "post": {
+        "tags": [
+          "follow-CRUD"
+        ],
+        "summary": "Follow a user.",
+        "operationId": "CreateFollowRequest",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "UserID",
+            "description": "user",
+            "name": "userId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "FollowedUserId",
+            "description": "user being followed",
+            "name": "followedUserId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/CreateFollowResponse"
+          }
+        }
+      }
+    },
+    "/follows/": {
+      "get": {
+        "tags": [
+          "follow-CRUD"
+        ],
+        "summary": "Unfollow a user.",
+        "operationId": "getUnFollowsRequest",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "UserID",
+            "description": "Get a user follow relationships",
+            "name": "userId",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/getFollowsResponse"
+          }
+        }
+      }
+    },
+    "/follows/{followid}": {
+      "delete": {
+        "description": "Delete Folow",
+        "tags": [
+          "follow-CRUD"
+        ],
+        "operationId": "deleteFollowRequest",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Followid",
+            "description": "follow record to be deleted",
+            "name": "followid",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/deleteFollowResponse"
+          }
+        }
+      }
+    },
+    "/like/{user_id}/{post_id}/{operation}": {
+      "put": {
+        "tags": [
+          "post-CRUD"
+        ],
+        "summary": "Like a post data.",
+        "operationId": "LikePostRequest",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "User_id",
+            "description": "User ID",
+            "name": "user_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Post_id",
+            "description": "Post ID",
+            "name": "post_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Operation",
+            "description": "operation value is either 'add' or 'remove'\nadd: to like a post\nremove: to unlike a post",
+            "name": "operation",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/LikePostResponse"
+          }
+        }
+      }
+    },
+    "/posts": {
+      "get": {
+        "tags": [
+          "post-CRUD"
+        ],
+        "summary": "Endpoint to fetch posts.",
+        "operationId": "getPostsByQueryParam",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Category",
+            "description": "Query param to filter post response.\nNo param returns all posts!",
+            "name": "category",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "AuthorID",
+            "name": "authorid",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "PostID",
+            "name": "postid",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Status",
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-name": "Slug",
+            "name": "slug",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/postsResponse"
+          }
+        }
+      }
+    },
+    "/posts/{author_id}": {
+      "put": {
+        "tags": [
+          "post-CRUD"
+        ],
+        "summary": "Update a post data.",
+        "operationId": "UpdatePostRequest",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Author_id",
+            "description": "Author ID",
+            "name": "author_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Required body parameter to create a post",
+            "name": "Body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/GetPostResponse"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/UpdatePostResponse"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "post-CRUD"
+        ],
+        "summary": "Create a post.",
+        "operationId": "CreatePostRequest",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Author_id",
+            "description": "Author ID",
+            "name": "author_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Required body parameter to create a post",
+            "name": "Body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CreatePostRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/CreatePostResponse"
+          }
+        }
+      }
+    },
+    "/posts/{author_id}/{post_id}": {
+      "delete": {
+        "tags": [
+          "post-CRUD"
+        ],
+        "summary": "Delete a post data.",
+        "operationId": "DeletePostRequest",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "Author_id",
+            "description": "Author ID",
+            "name": "author_id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "Post_id",
+            "description": "Post ID",
+            "name": "post_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/DeletePostResponse"
+          }
+        }
+      }
+    },
+    "/unfollow/{userId}/{unfollowedUserId}": {
+      "put": {
+        "tags": [
+          "follow-CRUD"
+        ],
+        "summary": "Unfollow a user.",
+        "operationId": "CreateUnFollowRequest",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-name": "UserID",
+            "description": "user",
+            "name": "userId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-name": "UnfollowedUserId",
+            "description": "user to unfollow",
+            "name": "unfollowedUserId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/CreateUnFollowResponse"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Bookmark": {
+      "type": "object",
+      "properties": {
+        "bookmarks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "Bookmarks"
+        },
+        "userid": {
+          "type": "string",
+          "x-go-name": "UserID"
+        }
+      },
+      "x-go-package": "blog/docs/bookmark"
+    },
+    "Comment": {
+      "type": "object",
+      "properties": {
+        "Author": {
+          "type": "string"
+        },
+        "DateCreated": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "LikeCount": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "Likes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "PostID": {
+          "type": "string"
+        },
+        "Replies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "RepliesCount": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "Text": {
+          "type": "string"
+        }
+      },
+      "x-go-package": "blog/docs/comment"
+    },
+    "CreateCommentRequest": {
+      "type": "object",
+      "properties": {
+        "authorid": {
+          "type": "string",
+          "x-go-name": "AuthorID"
+        },
+        "postid": {
+          "type": "string",
+          "x-go-name": "PostID"
+        },
+        "text": {
+          "type": "string",
+          "x-go-name": "Text"
+        }
+      },
+      "x-go-package": "blog/docs/comment"
+    },
+    "CreatePostRequest": {
+      "type": "object",
+      "title": "CreatePostRequest represents body of CreatePost request.",
+      "properties": {
+        "article": {
+          "type": "string",
+          "x-go-name": "Article"
+        },
+        "author": {
+          "type": "string",
+          "x-go-name": "Author"
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "Categories"
+        },
+        "status": {
+          "type": "string",
+          "x-go-name": "Status"
+        },
+        "title": {
+          "type": "string",
+          "x-go-name": "Title"
+        }
+      },
+      "x-go-package": "blog/docs/post"
+    },
+    "CreatePostResponse": {
+      "type": "object",
+      "title": "CreatePostResponse represents body of CreatePost response.",
+      "properties": {
+        "postid": {
+          "type": "string",
+          "x-go-name": "PostID"
+        }
+      },
+      "x-go-package": "blog/docs/post"
+    },
+    "Follow": {
+      "type": "object",
+      "properties": {
+        "followers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "Followers"
+        },
+        "following": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "Following"
+        },
+        "userid": {
+          "type": "string",
+          "x-go-name": "UserID"
+        }
+      },
+      "x-go-package": "blog/docs/follow"
+    },
+    "GetPostResponse": {
+      "type": "object",
+      "properties": {
+        "Comments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "Comments_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "DateCreated": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "DateUpdated": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "Like_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "Likes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ReadTime": {
+          "type": "string"
+        },
+        "Slug": {
+          "type": "string"
+        },
+        "Summary": {
+          "type": "string"
+        },
+        "URL": {
+          "type": "string"
+        },
+        "article": {
+          "type": "string",
+          "x-go-name": "Article"
+        },
+        "authorID": {
+          "type": "string",
+          "x-go-name": "AuthorID"
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-go-name": "Categories"
+        },
+        "coverimage": {
+          "type": "string",
+          "x-go-name": "CoverImage"
+        },
+        "status": {
+          "type": "string",
+          "x-go-name": "Status"
+        },
+        "title": {
+          "type": "string",
+          "x-go-name": "Title"
+        }
+      },
+      "x-go-package": "blog/docs/post"
+    },
+    "StatusReponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "x-go-name": "Status"
+        }
+      },
+      "x-go-package": "blog/docs/post"
+    },
+    "StatusResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "x-go-name": "Status"
+        }
+      },
+      "x-go-package": "blog/docs/follow"
+    }
+  },
+  "responses": {
+    "CreateFollowResponse": {
+      "description": "User follows FollowedUser.",
+      "schema": {
+        "$ref": "#/definitions/StatusResponse"
+      }
+    },
+    "CreatePostResponse": {
+      "description": "This text will appear as description of your response body.",
+      "schema": {
+        "$ref": "#/definitions/CreatePostResponse"
+      }
+    },
+    "CreateUnFollowResponse": {
+      "description": "User unfollows FollowedUser.",
+      "schema": {
+        "$ref": "#/definitions/StatusResponse"
+      }
+    },
+    "DeletePostResponse": {
+      "description": "This text will appear as description of your response body.",
+      "schema": {
+        "$ref": "#/definitions/StatusReponse"
+      }
+    },
+    "LikePostResponse": {
+      "description": "This text will appear as description of your response body.",
+      "schema": {
+        "$ref": "#/definitions/StatusReponse"
+      }
+    },
+    "UpdatePostResponse": {
+      "description": "This text will appear as description of your response body.",
+      "schema": {
+        "$ref": "#/definitions/StatusReponse"
+      }
+    },
+    "deleteCommentResponse": {
+      "description": "Delete Comment",
+      "schema": {
+        "$ref": "#/definitions/StatusResponse"
+      }
+    },
+    "deleteFollowResponse": {
+      "description": "Delete Follow",
+      "schema": {
+        "$ref": "#/definitions/StatusResponse"
+      }
+    },
+    "getBookmarkResponse": {
+      "description": "Fetch a user's bookmark record.",
+      "schema": {
+        "$ref": "#/definitions/Bookmark"
+      }
+    },
+    "getCommentsResponse": {
+      "description": "Fetch comments response according to supplied query params.",
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/Comment"
+        }
+      }
+    },
+    "getFollowsResponse": {
+      "description": "Fetch follows",
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/Follow"
+        }
+      }
+    },
+    "postsResponse": {
+      "description": "Returns all posts based on supplied queries",
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/GetPostResponse"
+        }
+      }
+    },
+    "updateBookmarkResponse": {
+      "description": "Update a user's bookmark record.",
+      "schema": {
+        "$ref": "#/definitions/StatusResponse"
+      }
+    },
+    "updateCommentResponse": {
+      "description": "Update Comment",
+      "schema": {
+        "$ref": "#/definitions/StatusResponse"
+      }
+    }
+  },
+  "securityDefinitions": {
+    "basic": {
+      "type": "basic"
+    }
+  }
+}
