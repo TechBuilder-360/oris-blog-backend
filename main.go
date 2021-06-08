@@ -136,5 +136,5 @@ func main() {
         PORT = vPORT
     } 
 
-	app.Run(vPORT)
+	app.Run(PORT)
 }
