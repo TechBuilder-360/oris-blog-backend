@@ -104,11 +104,9 @@ func main() {
 	// entityUserInterest := _entity.NewUserInterestEntity(repoUserInterest)
 
 
-	// app.Static("/templates", "./templates") // works with templates/index.html
 	app.GET("/", func(c *gin.Context) {
 		c.Redirect(http.StatusMovedPermanently, "docs/")
 	})
-
 	
 	app.StaticFS("/docs", http.Dir("./templates"))
 
@@ -124,7 +122,7 @@ func main() {
 	// - Credentials share disabled
 	// - Preflight requests cached for 12 hours
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://google.com"}
+	config.AllowOrigins = []string{"http://localhost:3000"}
 
 	app.Use(cors.New(config))
 
