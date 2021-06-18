@@ -113,7 +113,13 @@ func (c *PostRepository) CreatePost(ctx context.Context, reqPost domain.Post) (r
 	intoSentences := 2
 	bag := tldr.New()
 	result, _ := bag.Summarize(post.Article, intoSentences)
-	post.Summary = result[0]
+
+	if len(result) == 0{
+		post.Summary = post.Article
+	}else{
+		post.Summary = result[0]
+	}
+	
 
 	response, err := c.Collection.InsertOne(context.Background(), post)
 
