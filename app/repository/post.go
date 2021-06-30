@@ -110,7 +110,7 @@ func (c *PostRepository) CreatePost(ctx context.Context, reqPost domain.Post) (r
 	post.Like_count = 0
 	post.ReadTime = fmt.Sprintf("%v", readingtime.Estimate(post.Article).Text)
 	
-	intoSentences := 2
+	intoSentences := 1
 	bag := tldr.New()
 	result, _ := bag.Summarize(post.Article, intoSentences)
 
